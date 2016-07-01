@@ -8,10 +8,12 @@ PRODUCT_ID = 1046
 
 # find the USB device
 device = usb.core.find(idVendor=VENDOR_ID,idProduct=PRODUCT_ID)
-
-if device.is_kernel_driver_active(0):
-    reattach = True
-    device.detach_kernel_driver(0)
+try:
+	if device.is_kernel_driver_active(0):
+	    reattach = True
+	    device.detach_kernel_driver(0)
+except:
+	pass
 # use the first/default configuration
 device.set_configuration()
 # In order to read the pixel bytes, reset PIX_GRAB by sending a write command
@@ -25,7 +27,7 @@ while True:
 	# Read all the pixels (360 in this chip)
 	pixList = []
 	for i in range(361):
-	    response = device.ctrl_transfer(bmRequestType = 0xC0, #Read
+	    response = device.ctrl_transfer(bmRequestType = 0xC0, #Read.
 			                                 bRequest = 0x01,
 			                                 wValue = 0x0000,
 			                                 wIndex = 0x0c, #PIX_GRAB register value
@@ -37,6 +39,7 @@ while True:
 	pixelArray = pixelArray.reshape((19,19))
 	pixelArray = pixelArray.transpose()
 	pixelArray = np.flipud(pixelArray)
+	pixelArray = cv2.resize(pixelArray,(190,190),interpolation=cv2.INTER_NEAREST)
 	cv_img = pixelArray.astype(np.uint8)
 	cv2.imshow('test',cv_img)
 	cv2.waitKey(1)
